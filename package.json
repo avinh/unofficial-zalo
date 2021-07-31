@@ -1,0 +1,66 @@
+{
+  "name": "unofficial-zalo",
+  "version": "1.0.8",
+  "revision": "20190622",
+  "description": "Unofficial Zalo App",
+  "repository": "avinh/unofficial-zalo",
+  "main": "app.js",
+  "scripts": {
+    "start": "electron .",
+    "lint": "eslint . --ext .js --ignore-path .gitignore",
+    "lint:fix": "eslint . --ext .js --ignore-path .gitignore --fix",
+    "release": "electron-builder build",
+    "release:all": "npx electron-builder build -mwl -p always",
+    "release:win": "npx electron-builder build --win -p always",
+    "release:mac": "npx electron-builder build --mac -p always",
+    "release:linux": "npx electron-builder build --linux -p always"
+  },
+  "build": {
+    "appId": "tech.avinh.zalo-chat-unofficial",
+    "productName": "Zalo Chat Unofficial",
+    "mac": {
+      "category": "tech.avinh.unofficial-zalo",
+      "icon": "src/assets/icons/mac/icon.icns"
+    },
+    "linux": {
+      "category": "Network",
+      "target": [
+        "snap",
+        "AppImage",
+        "deb",
+        "rpm",
+        "zip",
+        "tar.xz",
+        "tar.gz",
+        "tar.bz2"
+      ]
+    }
+  },
+  "keywords": [
+    "unofficial",
+    "zalo",
+    "electron",
+    "cross-platform"
+  ],
+  "author": {
+    "name": "AVinh",
+    "email": "peca.hcmvn@gmail.com",
+    "url": "https://avinh.top/"
+  },
+  "license": "GPL-3.0",
+  "devDependencies": {
+    "electron": "^7.0.0",
+    "electron-builder": "21.2.0",
+    "eslint": "^6.0.0",
+    "eslint-config-standard": "14.0.1",
+    "eslint-plugin-import": "^2.17.3",
+    "eslint-plugin-node": "^10.0.0",
+    "eslint-plugin-promise": "^4.1.1",
+    "eslint-plugin-standard": "^4.0.0"
+  },
+  "dependencies": {
+    "auto-launch": "^5.0.5",
+    "electron-config": "^2.0.0",
+    "fs": "0.0.1-security"
+  }
+}
