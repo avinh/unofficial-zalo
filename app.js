@@ -177,8 +177,8 @@ function createWindow() {
     y: lastWindowState.y,
     width: lastWindowState.width,
     height: lastWindowState.height,
-    minWidth: 500,
-    minHeight: 300,
+    minWidth: 800,
+    minHeight: 600,
   })
   // win.maximize()
 
