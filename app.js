@@ -19,6 +19,7 @@ const autoLaunchOptions = {
 }
 const config = require('./config');
 const fs = require('fs');
+const gotTheLock = app.requestSingleInstanceLock()
 
 let mainWindow;
 let isQuitting = false;
@@ -76,7 +77,7 @@ const menuTemplate = [{
     type: 'checkbox',
     checked: config.get('isCloseToTray'),
     click() {
-      config.set('isCloseToTray', !config.get('isCloseToTray') ? true : false );
+      config.set('isCloseToTray', !config.get('isCloseToTray') ? true : false);
     }
   },
   {
@@ -162,7 +163,9 @@ function refreshAllMenus() {
   refreshAppMenu()
 }
 
+
 function createWindow() {
+
   session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
     details.requestHeaders['User-Agent'] = 'SuperDuperAgent';
     callback({ cancel: false, requestHeaders: details.requestHeaders });
@@ -179,6 +182,11 @@ function createWindow() {
     height: lastWindowState.height,
     minWidth: 800,
     minHeight: 600,
+    webPreferences: {
+      nodeIntegration: false,
+      preload: path.join(__dirname, 'preload.js'),
+      plugins: true
+    },
   })
   // win.maximize()
 
@@ -198,10 +206,13 @@ function createWindow() {
       e.preventDefault();
       let closeToTray = config.get('isCloseToTray');
       if (closeToTray) {
+        menuTemplate[0].submenu[1].label = 'Show window'
         win.hide()
       } else {
         app.quit();
       }
+      refreshTrayMenu()
+      refreshAppMenu()
     }
   });
 
@@ -238,37 +249,62 @@ function createWindow() {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', () => {
-  mainWindow = createWindow();
-  const page = mainWindow.webContents;
 
-  page.on('dom-ready', () => {
-    page.insertCSS(fs.readFileSync(path.join(__dirname, 'browser.css'), 'utf8'));
-    mainWindow.show();
-  });
 
-  page.on('new-window', (e, url) => {
-    e.preventDefault();
-    // shell.openExternal(url);
-  });
-
-  mainWindow.webContents.session.on('will-download', (event, item) => {
-    const totalBytes = item.getTotalBytes();
-
-    item.on('updated', () => {
-      mainWindow.setProgressBar(item.getReceivedBytes() / totalBytes);
-    });
-
-    item.on('done', (e, state) => {
-      mainWindow.setProgressBar(-1);
-
-      if (state === 'interrupted') {
-        Dialog.showErrorBox('Download error', 'The download was interrupted');
+if (!gotTheLock) {
+  app.quit()
+} else {
+  app.on('second-instance', (event, commandLine, workingDirectory) => {
+    // Someone tried to run a second instance, we should focus our window.
+    if (win) {
+      if (win.isMinimized()) mainWindow.restore()
+      win.focus()
+      
+      if (win.isVisible()) {
+        menuTemplate[0].submenu[1].label = 'Show window'
+        win.hide()
+      } else {
+        menuTemplate[0].submenu[1].label = 'Hide window'
+        win.show()
       }
+      refreshTrayMenu()
+      refreshAppMenu()
+    }
+  })
+  // Create myWindow, load the rest of the app, etc...
+  app.on('ready', () => {
+    mainWindow = createWindow();
+    const page = mainWindow.webContents;
+
+    page.on('dom-ready', () => {
+      page.insertCSS(fs.readFileSync(path.join(__dirname, 'browser.css'), 'utf8'));
+      mainWindow.show();
+    });
+
+    page.on('new-window', (e, url) => {
+      e.preventDefault();
+      // shell.openExternal(url);
+    });
+
+    mainWindow.webContents.session.on('will-download', (event, item) => {
+      const totalBytes = item.getTotalBytes();
+
+      item.on('updated', () => {
+        mainWindow.setProgressBar(item.getReceivedBytes() / totalBytes);
+      });
+
+      item.on('done', (e, state) => {
+        mainWindow.setProgressBar(-1);
+
+        if (state === 'interrupted') {
+          Dialog.showErrorBox('Download error', 'The download was interrupted');
+        }
+      });
     });
   });
+}
 
-});
+
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
   // On macOS it is common for applications and their menu bar
