@@ -41,7 +41,7 @@ const menuTemplate = [{
         icon: nativeImage.createFromPath(baseIconPath + 'app-icon.png'),
         title: 'About Unofficial Zalo',
         message: 'Unoffical Zalo ',
-        detail: `Built by AVinh ❤️ \nVersion: ${appVersion}\n`,
+        detail: `Built by avinh \nVersion: ${appVersion}\n`,
         buttons: ['OK']
       })
     }
@@ -88,25 +88,114 @@ const menuTemplate = [{
     }
   }]
 },
-  // {
-  //   label: 'Developer',
-  //   submenu: [
-  //     {
-  //       label: 'Reload',
-  //       accelerator: 'F5',
-  //       click() {
-  //         win.loadURL(rootUrl)
-  //       }
-  //     },
-  //     {
-  //       label: 'Open developer tool',
-  //       click() {
-  //         win.webContents.openDevTools()
-  //       }
-  //     }
-  //   ]
-  // }
-]
+{
+  label: 'Edit',
+  submenu: [
+    {
+      label: 'Undo',
+      accelerator: 'CmdOrCtrl+Z',
+      role: 'undo'
+    },
+    {
+      label: 'Redo',
+      accelerator: 'CmdOrCtrl+Shift+Z',
+      role: 'redo'
+    },
+    {
+      type: 'separator'
+    },
+    {
+      label: 'Cut',
+      accelerator: 'CmdOrCtrl+X',
+      role: 'cut'
+    },
+    {
+      label: 'Copy',
+      accelerator: 'CmdOrCtrl+C',
+      role: 'copy'
+    },
+    {
+      label: 'Paste',
+      accelerator: 'CmdOrCtrl+V',
+      role: 'paste'
+    },
+    {
+      type: 'separator'
+    },
+    {
+      label: 'Select All',
+      accelerator: 'CmdOrCtrl+A',
+      role: 'selectall'
+    }
+  ]
+},
+{
+  label: 'View',
+  submenu: [
+    {
+      label: 'Reload',
+      accelerator: 'CmdOrCtrl+R',
+      click() {
+        if (win) {
+          win.webContents.reload();
+        }
+      }
+    },
+    {
+      label: 'Force Reload',
+      accelerator: 'CmdOrCtrl+Shift+R',
+      click() {
+        if (win) {
+          win.webContents.reloadIgnoringCache();
+        }
+      }
+    },
+    {
+      type: 'separator'
+    },
+    {
+      label: 'Actual Size',
+      accelerator: 'CmdOrCtrl+0',
+      click() {
+        if (win) {
+          win.webContents.setZoomLevel(0);
+        }
+      }
+    },
+    {
+      label: 'Zoom In',
+      accelerator: 'CmdOrCtrl+Plus',
+      click() {
+        if (win) {
+          const currentZoom = win.webContents.getZoomLevel();
+          win.webContents.setZoomLevel(currentZoom + 0.5);
+        }
+      }
+    },
+    {
+      label: 'Zoom Out',
+      accelerator: 'CmdOrCtrl+-',
+      click() {
+        if (win) {
+          const currentZoom = win.webContents.getZoomLevel();
+          win.webContents.setZoomLevel(currentZoom - 0.5);
+        }
+      }
+    },
+    // {
+    //   type: 'separator'
+    // },
+    // {
+    //   label: 'Toggle Developer Tools',
+    //   accelerator: 'F12',
+    //   click() {
+    //     if (win) {
+    //       win.webContents.toggleDevTools();
+    //     }
+    //   }
+    // }
+  ]
+}]
 
 function toogleAutoLaunch() {
   appAutoLauncher.isEnabled()
@@ -167,7 +256,7 @@ function refreshAllMenus() {
 function createWindow() {
 
   session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
-    details.requestHeaders['User-Agent'] = 'SuperDuperAgent';
+    details.requestHeaders['User-Agent'] = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
     callback({ cancel: false, requestHeaders: details.requestHeaders });
   });
 
@@ -197,10 +286,55 @@ function createWindow() {
   // and load the index.html of the app.
   win.loadURL(rootUrl);
 
+  // Create context menu for right-click
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: 'Cut',
+      accelerator: 'CmdOrCtrl+X',
+      role: 'cut'
+    },
+    {
+      label: 'Copy',
+      accelerator: 'CmdOrCtrl+C', 
+      role: 'copy'
+    },
+    {
+      label: 'Paste',
+      accelerator: 'CmdOrCtrl+V',
+      role: 'paste'
+    },
+    {
+      type: 'separator'
+    },
+    {
+      label: 'Select All',
+      accelerator: 'CmdOrCtrl+A',
+      role: 'selectall'
+    },
+    {
+      type: 'separator'
+    },
+    {
+      label: 'Undo',
+      accelerator: 'CmdOrCtrl+Z',
+      role: 'undo'
+    },
+    {
+      label: 'Redo',
+      accelerator: 'CmdOrCtrl+Shift+Z',
+      role: 'redo'
+    }
+  ]);
+
+  // Show context menu on right-click
+  win.webContents.on('context-menu', (e, params) => {
+    contextMenu.popup(win, params.x, params.y);
+  });
+
   win.on('close', e => {
     if (isQuitting) {
-      if (!mainWindow.isFullScreen()) {
-        config.set('lastWindowState', mainWindow.getBounds());
+      if (win && !win.isDestroyed() && !win.isFullScreen()) {
+        config.set('lastWindowState', win.getBounds());
       }
     } else {
       e.preventDefault();
@@ -222,6 +356,7 @@ function createWindow() {
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
     win = null
+    mainWindow = null
   })
 
   tray = new Tray(path.join(__dirname, iconPath))
@@ -257,7 +392,7 @@ if (!gotTheLock) {
   app.on('second-instance', (event, commandLine, workingDirectory) => {
     // Someone tried to run a second instance, we should focus our window.
     if (win) {
-      if (win.isMinimized()) mainWindow.restore()
+      if (win.isMinimized()) win.restore()
       win.focus()
       
       if (win.isVisible()) {
@@ -325,6 +460,12 @@ app.on('activate', () => {
 // code. You can also put them in separate files and require them here.
 app.on('before-quit', () => {
   isQuitting = true;
-  currentURL = mainWindow.webContents.getURL();
-  config.set('currentURL', currentURL);
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    try {
+      currentURL = mainWindow.webContents.getURL();
+      config.set('currentURL', currentURL);
+    } catch (error) {
+      console.log('Could not get current URL:', error.message);
+    }
+  }
 });
