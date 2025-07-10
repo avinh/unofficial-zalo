@@ -184,9 +184,10 @@ const menuTemplate = [{
         }
       }
     },
-    // {
     //   type: 'separator'
-    // },
+    {
+      type: 'separator'
+    },
     // {
     //   label: 'Toggle Developer Tools',
     //   accelerator: 'F12',
@@ -196,6 +197,17 @@ const menuTemplate = [{
     //     }
     //   }
     // }
+    {
+      label: 'Dark Mode',
+      type: 'checkbox',
+      checked: config.get('darkMode'),
+      click() {
+        config.set('darkMode', !config.get('darkMode'));
+        if (win) {
+          win.webContents.reload();
+        }
+      }
+    }
   ]
 }]
 
@@ -416,6 +428,9 @@ if (!gotTheLock) {
 
     page.on('dom-ready', () => {
       page.insertCSS(fs.readFileSync(path.join(__dirname, 'browser.css'), 'utf8'));
+      if (config.get('darkMode')) {
+        page.insertCSS(fs.readFileSync(path.join(__dirname, 'darkmode.css'), 'utf8'));
+      }
       mainWindow.show();
     });
 
