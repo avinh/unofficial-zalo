@@ -30,6 +30,8 @@ if (process.platform === 'linux') {
 }
 const appAutoLauncher = new AutoLaunch(autoLaunchOptions)
 
+app.commandLine.appendSwitch('disable-vulkan');
+
 var isAutoLaunchEnabled = false
 var isAutoLaunchEnabled = false
 const menuTemplate = [{
@@ -274,7 +276,8 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       preload: path.join(__dirname, 'preload.js'),
-      plugins: true
+      plugins: true,
+      devTools: false
     },
   })
   // win.maximize()

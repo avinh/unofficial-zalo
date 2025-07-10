@@ -43,13 +43,13 @@
     "cross-platform"
   ],
   "author": {
-    "name": "AVinh",
+    "name": "avinh",
     "email": "peca.hcmvn@gmail.com",
-    "url": "https://avinh.top/"
+    "url": "https://github.com/avinh"
   },
   "license": "GPL-3.0",
   "devDependencies": {
-    "electron": "^28.0.0",
+    "electron": "^22.3.27",
     "electron-builder": "^24.0.0",
     "eslint": "^8.0.0",
     "eslint-config-standard": "17.0.0",
